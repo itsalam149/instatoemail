@@ -9,16 +9,13 @@
         margin: 40px;
         background: linear-gradient(to right, #e3f2fd, #fbe9e7);
         color: #333;
-        transition: background 0.3s ease;
       }
-
       h2 {
         text-align: center;
         font-size: 28px;
         margin-bottom: 20px;
         color: #222;
       }
-
       form {
         max-width: 600px;
         margin: 0 auto;
@@ -27,7 +24,6 @@
         border-radius: 10px;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       }
-
       textarea {
         width: 100%;
         height: 150px;
@@ -36,22 +32,13 @@
         border: 1px solid #ccc;
         border-radius: 6px;
         resize: vertical;
-        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-        transition: border-color 0.3s;
       }
-
-      textarea:focus {
-        border-color: #007bff;
-        outline: none;
-      }
-
       .btn-group {
         display: flex;
         justify-content: space-between;
         gap: 10px;
         margin-top: 20px;
       }
-
       button {
         flex: 1;
         padding: 12px;
@@ -62,22 +49,17 @@
         cursor: pointer;
         font-size: 16px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
       }
-
       button:hover {
         background: #0056b3;
         transform: scale(1.05);
       }
-
       .reset-btn {
         background: #6c757d;
       }
-
       .reset-btn:hover {
         background: #5a6268;
       }
-
       #result {
         max-width: 600px;
         margin: 30px auto 0;
@@ -85,9 +67,7 @@
         background: white;
         border: 1px solid #ccc;
         border-radius: 10px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
       }
-
       .download-btn {
         display: inline-block;
         margin-top: 20px;
@@ -97,15 +77,11 @@
         border-radius: 6px;
         text-decoration: none;
         font-size: 16px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
       }
-
       .download-btn:hover {
         background-color: #218838;
         transform: scale(1.05);
       }
-
       pre {
         background: #f8f9fa;
         padding: 10px;
@@ -135,6 +111,10 @@
     <div id="result"></div>
 
     <script>
+      const BACKEND_URL = window.location.hostname.includes("localhost")
+        ? "http://localhost:8000"
+        : "https://your-fastapi-backend.onrender.com"; // 🔁 Replace with your real Render URL
+
       document
         .getElementById("instaForm")
         .addEventListener("submit", async function (e) {
@@ -144,34 +124,37 @@
           const rawLinks = textarea.value.trim().split("\n").filter(Boolean);
           const formData = new FormData();
 
-          rawLinks.forEach((link) => {
-            formData.append("links", link);
-          });
+          rawLinks.forEach((link) => formData.append("links", link));
 
-          const response = await fetch("/process/", {
-            method: "POST",
-            body: formData,
-          });
+          try {
+            const response = await fetch(`${BACKEND_URL}/process/`, {
+              method: "POST",
+              body: formData,
+            });
 
-          const result = await response.json();
-          console.log("API Response:", result);
+            const result = await response.json();
+            console.log("API Response:", result);
 
-          let html = `
-          <h3>Processed Links:</h3>
-          <pre>${JSON.stringify(result.data, null, 2)}</pre>
-        `;
+            let html = `
+              <h3>Processed Links:</h3>
+              <pre>${JSON.stringify(result.data, null, 2)}</pre>
+            `;
 
-          if (result.cloud_response && result.cloud_response.csv_path) {
-            html += `
-            <a href="${result.cloud_response.csv_path}" class="download-btn" download>
-              ⬇ Download CSV
-            </a>
-          `;
-          } else if (result.cloud_response && result.cloud_response.error) {
-            html += `<p style="color: red;">⚠️ ${result.cloud_response.error}</p>`;
+            if (result.cloud_response?.csv_path) {
+              html += `
+                <a href="${BACKEND_URL}${result.cloud_response.csv_path}" class="download-btn" download>
+                  ⬇ Download CSV
+                </a>`;
+            } else if (result.cloud_response?.error) {
+              html += `<p style="color: red;">⚠️ ${result.cloud_response.error}</p>`;
+            }
+
+            document.getElementById("result").innerHTML = html;
+          } catch (err) {
+            document.getElementById(
+              "result"
+            ).innerHTML = `<p style="color:red;">❌ Error: ${err.message}</p>`;
           }
-
-          document.getElementById("result").innerHTML = html;
         });
 
       function resetForm() {
