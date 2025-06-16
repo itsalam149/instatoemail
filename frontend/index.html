@@ -113,7 +113,7 @@
     <script>
       const BACKEND_URL = window.location.hostname.includes("localhost")
         ? "http://localhost:8000"
-        : "https://https://instatoemail.onrender.com";
+        : "https://instatoemail.onrender.com";
       document
         .getElementById("instaForm")
         .addEventListener("submit", async function (e) {
@@ -130,7 +130,6 @@
               method: "POST",
               body: formData,
             });
-
             const result = await response.json();
             console.log("API Response:", result);
 
